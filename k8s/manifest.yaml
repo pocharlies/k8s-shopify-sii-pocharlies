@@ -1,0 +1,67 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: skirmshop
+  labels:
+    cnpg-backup: "true"   # triggers ClusterExternalSecret minio-backup-creds
+---
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sii-app
+  namespace: skirmshop
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: sii-app } }
+  template:
+    metadata: { labels: { app: sii-app } }
+    spec:
+      enableServiceLinks: false
+      nodeSelector: { topology: lan, kubernetes.io/arch: amd64 }
+      containers:
+        - name: sii-app
+          image: harbor.e-dani.com/homelab/shopify-sii-app:latest
+          ports: [{ name: http, containerPort: 3000 }]
+          env:
+            - { name: PORT, value: "3000" }
+            - { name: NODE_ENV, value: "production" }
+            - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@shared-postgres-rw.skirmshop.svc.cluster.local:5432/skirmshop" }
+            - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/sii" }
+          envFrom: [{ secretRef: { name: labels-secrets } }]
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits:   { memory: 512Mi }
+          readinessProbe:
+            tcpSocket: { port: 3000 }
+            initialDelaySeconds: 20
+---
+---
+apiVersion: v1
+kind: Service
+metadata: { name: sii-app, namespace: skirmshop }
+spec:
+  selector: { app: sii-app }
+  ports: [{ name: http, port: 80, targetPort: 3000 }]
+---
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sii-app-public
+  namespace: skirmshop
+spec:
+  entryPoints: [websecure]
+  ingressClassName: traefik-edge
+  routes:
+    - match: Host(`sii.e-dani.com`)
+      kind: Rule
+      services:
+        - name: sii-app
+          port: 80
+  tls: {}
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FIRECRAWL (web scraping — used by skirmshop AI features)
+# ══════════════════════════════════════════════════════════════════════════════
