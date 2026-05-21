@@ -20,6 +20,8 @@ spec:
             - { name: NODE_ENV, value: "production" }
             - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@shared-postgres-rw.skirmshop.svc.cluster.local:5432/skirmshop" }
             - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/sii" }
+            - { name: SHOPIFY_STORE, value: "skirmshop-spain.myshopify.com" }
+            - { name: SCOPES, value: "read_orders,read_all_orders,read_products,write_orders,read_customers,write_customers" }
           envFrom: [{ secretRef: { name: labels-secrets } }]
           resources:
             requests: { cpu: 50m, memory: 128Mi }
@@ -35,7 +37,6 @@ metadata: { name: sii-app, namespace: skirmshop }
 spec:
   selector: { app: sii-app }
   ports: [{ name: http, port: 80, targetPort: 3000 }]
----
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
