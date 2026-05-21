@@ -37,6 +37,7 @@ metadata: { name: sii-app, namespace: skirmshop }
 spec:
   selector: { app: sii-app }
   ports: [{ name: http, port: 80, targetPort: 3000 }]
+---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
