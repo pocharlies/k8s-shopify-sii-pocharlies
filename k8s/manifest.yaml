@@ -59,7 +59,8 @@ spec:
       services:
         - name: sii-app
           port: 80
-  tls: {}
+  tls:
+    store: { name: default, namespace: traefik-edge }
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FIRECRAWL (web scraping — used by skirmshop AI features)
