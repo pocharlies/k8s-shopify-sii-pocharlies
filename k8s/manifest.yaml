@@ -15,7 +15,7 @@ spec:
         - { key: role, operator: Equal, value: edge, effect: NoSchedule }
       containers:
         - name: sii-app
-          image: harbor.e-dani.com/homelab/shopify-sii-app:session-hotfix-refresh-token-202605221312
+          image: harbor.e-dani.com/homelab/shopify-sii-app:navigation-hotfix-202605221700
           imagePullPolicy: IfNotPresent
           ports: [{ name: http, containerPort: 3000 }]
           env:
