@@ -20,7 +20,7 @@ spec:
           env:
             - { name: PORT, value: "3000" }
             - { name: NODE_ENV, value: "production" }
-            - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@shared-postgres-rw.skirmshop.svc.cluster.local:5432/skirmshop" }
+            - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/skirmshop" }
             - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/sii" }
             - { name: SHOPIFY_STORE, value: "skirmshop-spain.myshopify.com" }
             - { name: SCOPES, value: "read_orders,read_all_orders,read_products,write_orders,read_customers,write_customers" }
