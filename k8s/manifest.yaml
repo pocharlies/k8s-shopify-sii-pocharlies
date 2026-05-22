@@ -18,12 +18,15 @@ spec:
           image: harbor.e-dani.com/homelab/shopify-sii-app:app-fallback-hotfix-202605221758
           imagePullPolicy: IfNotPresent
           ports: [{ name: http, containerPort: 3000 }]
+          volumeMounts:
+            - { name: sii-hotfix-build, mountPath: /app/build, readOnly: true }
           env:
             - { name: PORT, value: "3000" }
             - { name: NODE_ENV, value: "production" }
             - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/skirmshop" }
             - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/sii" }
-            - { name: SHOPIFY_STORE, value: "skirmshop-spain.myshopify.com" }
+            - { name: SHOPIFY_STORE, value: "ymimst-yh.myshopify.com" }
+            - { name: SHOPIFY_ADMIN_STORE_HANDLE, value: "skirmshop-spain" }
             - { name: SCOPES, value: "read_orders,read_all_orders,read_products,write_orders,read_customers,write_customers" }
           envFrom: [{ secretRef: { name: sii-secrets } }]
           resources:
@@ -32,6 +35,11 @@ spec:
           readinessProbe:
             tcpSocket: { port: 3000 }
             initialDelaySeconds: 20
+      volumes:
+        - name: sii-hotfix-build
+          hostPath:
+            path: /tmp/sii-build-hotfix
+            type: Directory
 ---
 ---
 apiVersion: v1
