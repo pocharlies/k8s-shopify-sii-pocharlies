@@ -24,7 +24,7 @@ spec:
             - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/sii" }
             - { name: SHOPIFY_STORE, value: "skirmshop-spain.myshopify.com" }
             - { name: SCOPES, value: "read_orders,read_all_orders,read_products,write_orders,read_customers,write_customers" }
-          envFrom: [{ secretRef: { name: labels-secrets } }]
+          envFrom: [{ secretRef: { name: sii-secrets } }]
           resources:
             requests: { cpu: 50m, memory: 128Mi }
             limits:   { memory: 512Mi }
