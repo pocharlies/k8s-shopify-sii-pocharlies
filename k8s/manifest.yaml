@@ -16,6 +16,7 @@ spec:
       containers:
         - name: sii-app
           image: harbor.e-dani.com/homelab/shopify-sii-app@sha256:a9ede9128f21bee51b9159f4bd65deb59026d4bebf65db80b4bec243d961b097
+          imagePullPolicy: IfNotPresent
           ports: [{ name: http, containerPort: 3000 }]
           env:
             - { name: PORT, value: "3000" }
