@@ -11,6 +11,11 @@ metadata:
 spec:
   schedule: "0 1 * * *"          # was: sii_invoicing — daily 01:00
   timeZone: Europe/Madrid
+  # STAGED suspended. Image fix APPLIED: pocharlies-org/shopify-sii-app Dockerfile now
+  # COPYs app/ + scripts/ + tsconfig.json and bakes `tsx` globally. After that image is
+  # rebuilt+released, unsuspend AND remove the matching sauvage host cron line
+  # (cron-wrapper.sh sii_*) to avoid double fiscal filings.
+  suspend: true
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 200
   successfulJobsHistoryLimit: 3
@@ -37,7 +42,7 @@ spec:
             - name: invoicing
               image: shopify-app          # rewritten by overlay images: → shopify-sii-app
               workingDir: /app
-              command: ["npx", "tsx", "scripts/daily-invoicing.ts"]
+              command: ["tsx","scripts/daily-invoicing.ts"]
               envFrom:
                 - secretRef: { name: sii-secrets }
               env:
@@ -66,6 +71,11 @@ metadata:
 spec:
   schedule: "10 1 1 * *"         # was: sii_monthly_report — monthly, day 1 @ 01:10
   timeZone: Europe/Madrid
+  # STAGED suspended. Image fix APPLIED: pocharlies-org/shopify-sii-app Dockerfile now
+  # COPYs app/ + scripts/ + tsconfig.json and bakes `tsx` globally. After that image is
+  # rebuilt+released, unsuspend AND remove the matching sauvage host cron line
+  # (cron-wrapper.sh sii_*) to avoid double fiscal filings.
+  suspend: true
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 200
   successfulJobsHistoryLimit: 3
@@ -92,7 +102,7 @@ spec:
             - name: monthly-report
               image: shopify-app
               workingDir: /app
-              command: ["npx", "tsx", "scripts/monthly-fiscal-report.ts"]
+              command: ["tsx","scripts/monthly-fiscal-report.ts"]
               envFrom:
                 - secretRef: { name: sii-secrets }
               env:
