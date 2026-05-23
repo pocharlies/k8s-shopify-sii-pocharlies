@@ -1,0 +1,113 @@
+# Scheduled jobs migrated off sauvage's `ubuntu` crontab (cron-wrapper.sh sii_*).
+# Reuse the SII app image (kustomize `images:` rewrites `shopify-app`) + sii-secrets,
+# replicating the Deployment's env so the scripts run with identical config.
+# timeZone keeps the original local-time intent (Spanish fiscal jobs).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: invoicing
+  labels:
+    app.kubernetes.io/component: cron
+spec:
+  schedule: "0 1 * * *"          # was: sii_invoicing — daily 01:00
+  timeZone: Europe/Madrid
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 200
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 1800
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          imagePullSecrets:
+            - name: harbor-pull
+          nodeSelector:
+            role: edge
+            kubernetes.io/arch: amd64
+          tolerations:
+            - { key: role, operator: Equal, value: edge, effect: NoSchedule }
+          volumes:
+            - name: sii-hotfix-build      # mirrors Deployment's TEMP hostPath build override
+              hostPath: { path: /tmp/sii-build-hotfix, type: Directory }
+          containers:
+            - name: invoicing
+              image: shopify-app          # rewritten by overlay images: → shopify-sii-app
+              workingDir: /app
+              command: ["npx", "tsx", "scripts/daily-invoicing.ts"]
+              envFrom:
+                - secretRef: { name: sii-secrets }
+              env:
+                - { name: NODE_ENV, value: "production" }
+                - name: DB_USER
+                  valueFrom: { secretKeyRef: { name: shared-postgres-app, key: username } }
+                - name: DB_PASSWORD
+                  valueFrom: { secretKeyRef: { name: shared-postgres-app, key: password } }
+                - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/skirmshop" }
+                - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/sii" }
+                - { name: SHOPIFY_STORE, value: "ymimst-yh.myshopify.com" }
+                - { name: SHOPIFY_ADMIN_STORE_HANDLE, value: "skirmshop-spain" }
+                - { name: SCOPES, value: "read_orders,read_all_orders,read_products,write_orders,read_customers,write_customers" }
+              volumeMounts:
+                - { name: sii-hotfix-build, mountPath: /app/build, readOnly: true }
+              resources:
+                requests: { cpu: 50m, memory: 192Mi }
+                limits: { memory: 768Mi }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: monthly-report
+  labels:
+    app.kubernetes.io/component: cron
+spec:
+  schedule: "10 1 1 * *"         # was: sii_monthly_report — monthly, day 1 @ 01:10
+  timeZone: Europe/Madrid
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 200
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 3600
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: Never
+          imagePullSecrets:
+            - name: harbor-pull
+          nodeSelector:
+            role: edge
+            kubernetes.io/arch: amd64
+          tolerations:
+            - { key: role, operator: Equal, value: edge, effect: NoSchedule }
+          volumes:
+            - name: sii-hotfix-build
+              hostPath: { path: /tmp/sii-build-hotfix, type: Directory }
+          containers:
+            - name: monthly-report
+              image: shopify-app
+              workingDir: /app
+              command: ["npx", "tsx", "scripts/monthly-fiscal-report.ts"]
+              envFrom:
+                - secretRef: { name: sii-secrets }
+              env:
+                - { name: NODE_ENV, value: "production" }
+                - name: DB_USER
+                  valueFrom: { secretKeyRef: { name: shared-postgres-app, key: username } }
+                - name: DB_PASSWORD
+                  valueFrom: { secretKeyRef: { name: shared-postgres-app, key: password } }
+                - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/skirmshop" }
+                - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/sii" }
+                - { name: SHOPIFY_STORE, value: "ymimst-yh.myshopify.com" }
+                - { name: SHOPIFY_ADMIN_STORE_HANDLE, value: "skirmshop-spain" }
+                - { name: SCOPES, value: "read_orders,read_all_orders,read_products,write_orders,read_customers,write_customers" }
+              volumeMounts:
+                - { name: sii-hotfix-build, mountPath: /app/build, readOnly: true }
+              resources:
+                requests: { cpu: 50m, memory: 192Mi }
+                limits: { memory: 768Mi }
