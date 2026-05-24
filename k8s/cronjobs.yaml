@@ -13,7 +13,7 @@ metadata:
 spec:
   schedule: "0 1 * * *"          # was: sii_invoicing — daily 01:00
   timeZone: Europe/Madrid
-  suspend: true                  # flip to false at cutover, AFTER removing the host cron line
+  suspend: false                 # ACTIVE — sauvage host cron line removed at cutover 2026-05-24
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 200
   successfulJobsHistoryLimit: 3
@@ -73,7 +73,7 @@ metadata:
 spec:
   schedule: "10 1 1 * *"         # was: sii_monthly_report — monthly, day 1 @ 01:10
   timeZone: Europe/Madrid
-  suspend: true                  # flip to false at cutover, AFTER removing the host cron line
+  suspend: false                 # ACTIVE — sauvage host cron line removed at cutover 2026-05-24
   concurrencyPolicy: Forbid
   startingDeadlineSeconds: 200
   successfulJobsHistoryLimit: 3
