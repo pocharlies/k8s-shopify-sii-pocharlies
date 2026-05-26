@@ -16,8 +16,8 @@ labels:
 
 images:
   - name: shopify-app
-    newName: harbor.lan.e-dani.com/homelab/shopify-sii-app
-    newTag: v1.10.0
+    newName: harbor.e-dani.com/homelab/shopify-sii-app
+    newTag: app-fallback-hotfix-202605221758
 
 patches:
   - target: { kind: Deployment, name: app }
@@ -29,6 +29,12 @@ patches:
       spec:
         template:
           spec:
+            # TEMP HOTFIX: hostPath build override. Remove once the image ships the fix.
+            volumes:
+              - name: sii-hotfix-build
+                hostPath:
+                  path: /tmp/sii-build-hotfix
+                  type: Directory
             containers:
               - name: app
                 env:
@@ -38,6 +44,8 @@ patches:
                   - { name: SHOPIFY_ADMIN_STORE_HANDLE, value: "skirmshop-spain" }
                 envFrom:
                   - secretRef: { name: sii-secrets }
+                volumeMounts:
+                  - { name: sii-hotfix-build, mountPath: /app/build, readOnly: true }
   - target: { group: traefik.io, version: v1alpha1, kind: IngressRoute, name: app }
     patch: |-
       - op: replace
