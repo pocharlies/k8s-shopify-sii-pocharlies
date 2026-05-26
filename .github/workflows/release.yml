@@ -1,5 +1,8 @@
 name: Release Production
 
+# Re-registered 2026-05-26 after org rename pocharlies → pocharlies-org left
+# push-event triggers in a stale state. Trivial edit forces GitHub to re-parse
+# the workflow definition.
 on:
   push:
     tags: ["*"]
